@@ -1,13 +1,15 @@
-from flask import Flask, render_template , request , url_for, make_response , flash , redirect
+from dotenv import load_dotenv
+import os
+from flask import Flask, render_template , request , url_for, make_response , flash , redirect , Response
 from datetime import date , datetime
-# from insert_data import add_expense
-# from read_data import get_all_expenses , get_filtered_expenses
-# from delete_data import delete_expense
+import csv
+import io
+from crud import add_expense, get_all_expenses, get_filtered_expenses , delete_expense , category_pie_chart , daily_spending_chart
 
-from crud import add_expense, get_all_expenses, get_filtered_expenses , delete_expense , category_totals
 
 app = Flask(__name__)
-app.secret_key = "your-secret-key"
+load_dotenv()
+app.secret_key = os.getenv("SECRET_KEY")
 
 # categories 
 CATEGORIES = ["Food", "Travel", "Essentials","Bills", "Others"]
@@ -15,7 +17,6 @@ CATEGORIES = ["Food", "Travel", "Essentials","Bills", "Others"]
 @app.route("/")
 def index():
     expenses = get_all_expenses()
-    
     
 
     # filter request
@@ -31,13 +32,24 @@ def index():
     # add total sum 
     total = round(sum(e["amount"] for e in expenses), 2)
 
-    #pie chart data
-    chart_data = category_totals()
+    #------------pie chart data-------------
+    chart_data = category_pie_chart()
     labels =[]
     values =[]
     for row in chart_data:
         labels.append(row["category"])
         values.append(row["total"])
+
+    #----------------------------------------
+
+    #------------bar chart data--------------
+    bar_data = daily_spending_chart()
+    bar_labels = [row["day"] for row in bar_data]
+    bar_values = [row["total"] for row in bar_data]
+    # both lines are similar to above 
+    
+    #-----------------------------------------
+
 
     return render_template(
         "index.html" ,
@@ -46,7 +58,9 @@ def index():
         categories=CATEGORIES,
         total=total, 
         labels=labels,
-        values=values
+        values=values,
+        bar_labels=bar_labels,
+        bar_values=bar_values
 
          
          
@@ -95,6 +109,58 @@ def delete(expense_id):
     flash("Expense Deleted", "success")
     return redirect(url_for("index"))
 
+@app.route("/export.csv")
+def export_csv():
+    
+    start_date = request.args.get("start_date")
+    end_date   = request.args.get("end_date")
+    category   = request.args.get("category")
+
+    expenses   = get_filtered_expenses(
+        start_date=start_date,
+        end_date=end_date,
+        category=category
+    )
+
+    # csv code 
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "Description",
+        "Amount",
+        "Category",
+        "Date"
+    ])
+
+    for expense in expenses:
+        writer.writerow([
+            expense["description"],
+            expense["amount"],
+            expense["category"],
+            expense["date"]
+        ])
+    
+    output.seek(0)
+
+    #------- give the file a suitable name
+    if start_date and end_date:
+        filename = f"expenses_{start_date}_to_{end_date}.csv"
+    elif start_date:
+        filename = f"expenses_from_{start_date}.csv"
+    elif end_date:
+        filename = f"expenses_until_{end_date}.csv"
+    else:
+        filename = "expenses_all.csv"
+    #--------------------------------------- 
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
 
 
 

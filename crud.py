@@ -79,7 +79,7 @@ def delete_expense(expense_id):
     conn.commit()
     conn.close()
    
-def category_totals():
+def category_pie_chart():
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -94,3 +94,25 @@ def category_totals():
     conn.close()
 
     return data 
+
+def daily_spending_chart():
+    # returs the total expenses for each day of the current month
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            strftime('%d' , date) AS day,
+            SUM(amount) AS total
+        FROM expenses
+        WHERE strftime('%Y-%m', date) = strftime('%Y-%m','now')
+        GROUP BY day
+        ORDER BY day
+       """)
+
+    data = cursor.fetchall()
+    conn.close()
+       
+    return data 
+    
