@@ -17,7 +17,15 @@
   </head>
   <body class="h-full bg-slate-900 text-slate-100">
     <main class="mx-auto max-w-6xl px-4 py-8">
-      <h1 class="text-3xl font-semibold mb-2">Dashboard</h1>
+      <div class="mb-8">
+    <h1 class="text-4xl font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
+        💰 Expense Tracker
+    </h1>
+
+  
+
+    
+</div>
       {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
@@ -53,7 +61,7 @@
               <input
                 name="start_date"
                 type="date"
-                class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100"
+                class="w-full rounded-xl bg-slate-800 border border-slate-700 px-2 py-2 text-slate-100"
               />
             </label>
             <label class="text-sm">
@@ -103,7 +111,7 @@
             <span
               class="inline-block rounded-xl border border-slate-700 bg-slate-800 px-3 py-1 font-semibold"
             >
-              {{ '%2.f' | format(total or 0)}}
+              {{ '%.2f' | format(total or 0)}}
             </span>
           </div>
 
@@ -185,7 +193,7 @@
         <span
           class="inline-block rounded-xl border border-slate-700 bg-slate-800 px-3 py-1 font-semibold"
         >
-          {{ '%2.f' | format(total or 0)}}
+          {{ '%.2f' | format(total or 0)}}
         </span>
       </div>
 
@@ -217,6 +225,20 @@
                 <td class="px-4 py-2">{{e.category}}</td>
                 <td class="px-4 py-2 text-right">{{ '%.2f '| format(e.amount)}}</td>
                 <td class="px-4 py-2 text-right">
+
+                  <div class="inline-flex gap-2">
+                    <a class="text-sky-300
+                    hover:text-sky-200
+                    text-xs
+                    border
+                    border-sky-400/30
+                    px-3
+                    py-1
+                    rounded-lg
+                    "
+                    href="{{ url_for('edit', expense_id=e.id) }}">Edit</a>
+
+
                   <form
                     method="post"
                     action="{{url_for('delete', expense_id=e.id)}}"
@@ -229,6 +251,8 @@
                     Delete
                   </button>
                   </form>
+                </div>
+
                 </td>
               </tr>
 

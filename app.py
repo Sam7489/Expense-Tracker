@@ -4,7 +4,7 @@ from flask import Flask, render_template , request , url_for, make_response , fl
 from datetime import date , datetime
 import csv
 import io
-from crud import add_expense, get_all_expenses, get_filtered_expenses , delete_expense , category_pie_chart , daily_spending_chart
+from crud import add_expense, get_all_expenses, get_filtered_expenses , delete_expense , category_pie_chart , daily_spending_chart , get_expense , update_expense
 
 
 app = Flask(__name__)
@@ -161,6 +161,29 @@ def export_csv():
             "Content-Disposition": f"attachment; filename={filename}"
         }
     )
+
+@app.route("/edit/<int:expense_id>")
+def edit(expense_id):
+    expense = get_expense(expense_id)
+    print(expense)
+    return render_template('edit.html', expense = expense , categories=CATEGORIES)
+
+@app.route("/edit/<int:expense_id>", methods=["POST"])
+def edit_post(expense_id):
+    description = request.form["description"]
+    amount      = request.form["amount"]
+    category    = request.form["category"]
+    date        = request.form["date"]
+
+    update_expense(
+        expense_id=expense_id,
+        description=description,
+        amount=amount,
+        category=category,
+        date=date
+        )   
+    
+    return redirect(url_for("index"))
 
 
 

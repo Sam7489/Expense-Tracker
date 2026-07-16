@@ -116,3 +116,34 @@ def daily_spending_chart():
        
     return data 
     
+# ---- for edit functionality
+def get_expense(expense_id):
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM expenses WHERE id = ?",
+        (expense_id,)
+    )
+
+    expense = cursor.fetchone()
+    
+    conn.close()
+
+    return expense
+
+def update_expense(expense_id, description,amount, category, date):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE expenses
+        SET description = ? , amount = ?, category = ? , date = ?
+        WHERE id = ?
+         """, 
+        (description, amount, category, date, expense_id)
+        )
+
+    conn.commit()
+    conn.close()
